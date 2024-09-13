@@ -1,21 +1,20 @@
+import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-import joblib
+from sklearn.model_selection import train_test_split
 
-def train_random_forest(features, labels):
-    # Initialize Random Forest classifier
-    clf = RandomForestClassifier(n_estimators=100, random_state=42)
-    
-    # Train the model
-    clf.fit(features, labels)
-    
+def train_model(X, y):
+    # Flatten the two-channel features into a single feature vector per pixel
+    X = X.reshape(X.shape[0], -1)  # Flatten VV and VH channels into one long feature vector
+
+    # Split data into training and testing
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+    # Train a Random Forest model
+    clf = RandomForestClassifier(n_estimators=100)
+    clf.fit(X_train, y_train)
+
     # Save the trained model
     joblib.dump(clf, 'model/random_forest_model.pkl')
-    print("Model trained and saved!")
 
-if __name__ == "__main__":
-    # Assuming features and labels are already prepared
-    features = np.load('data/features.npy')   # Load pre-extracted features
-    labels = np.load('data/labels.npy')       # Load corresponding labels (0 = natural, 1 = man-made)
-    
-    train_random_forest(features, labels)
+    print("Model training completed.")

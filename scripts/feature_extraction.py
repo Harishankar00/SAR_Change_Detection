@@ -2,20 +2,19 @@ import cv2
 import numpy as np
 
 def extract_features(image):
-    # Edge detection (Canny)
-    edges = cv2.Canny(image, 100, 200)
-    
-    # Texture features (using Laplacian filter)
-    laplacian = cv2.Laplacian(image, cv2.CV_64F)
-    
-    return np.dstack((edges, laplacian))
+    # Split the two-channel image into VV and VH
+    vv, vh = cv2.split(image)
 
-def prepare_feature_set(before_img, after_img):
-    # Extract features from both images
-    before_features = extract_features(before_img)
-    after_features = extract_features(after_img)
+    # Example: Use Sobel operator to extract edges for both VV and VH
+    sobelx_vv = cv2.Sobel(vv, cv2.CV_64F, 1, 0, ksize=5)
+    sobely_vv = cv2.Sobel(vv, cv2.CV_64F, 0, 1, ksize=5)
     
-    # Calculate the difference in features between before and after images
-    feature_diff = np.abs(after_features - before_features)
-    
-    return feature_diff.reshape(-1, feature_diff.shape[-1])  # Flatten for Random Forest input
+    sobelx_vh = cv2.Sobel(vh, cv2.CV_64F, 1, 0, ksize=5)
+    sobely_vh = cv2.Sobel(vh, cv2.CV_64F, 0, 1, ksize=5)
+
+    # Combine the features from VV and VH (you can customize this)
+    features_vv = np.sqrt(sobelx_vv ** 2 + sobely_vv ** 2)
+    features_vh = np.sqrt(sobelx_vh ** 2 + sobely_vh ** 2)
+
+    # Return combined features as a 2-channel image
+    return np.stack([features_vv, features_vh], axis=-1)
